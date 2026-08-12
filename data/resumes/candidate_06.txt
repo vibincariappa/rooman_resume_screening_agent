@@ -1,0 +1,14 @@
+Michael Green
+Graduate Software Developer
+Email: michael.green@example.com | Phone: 555-0106
+
+Summary:
+Fresh graduate looking for an entry level software engineering role.
+
+Experience:
+No professional experience.
+
+Education:
+B.Tech in Computer Science (Graduated 2026)
+
+Skills: Python, FastAPI, scikit-learn, SQL

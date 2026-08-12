@@ -6,9 +6,10 @@ This project is built using a deterministic, NLP-similarity-driven scoring frame
 
 ---
 
-## 📅 Project Phase: Document Parsing (Step 1 Completed)
+## 📅 Project Phase: Structured Resume Extraction (Step 3 Completed)
 
-We have completed **Step 1: Resume Document Parsing**. The pipeline now supports importing, parsing, and normalizing `.pdf`, `.docx`, and `.txt` files with type-safety and detailed validations.
+We have completed **Step 3: Structured Resume Extraction**. The application can extract structured candidate profile schemas (name, contact info, skills, education, experience, summary, experience text blocks) deterministically from PDF, DOCX, and TXT files, and compile a parsed candidate summary catalog.
+
 
 
 ---
@@ -132,26 +133,51 @@ All extractors route raw content through a normalizer that:
 1. Strips leading and trailing whitespaces on each line.
 2. Collapses 3+ consecutive newlines down to exactly 2 newlines (double newlines) to preserve paragraph structure without clutter.
 
-### Parser CLI Command
-You can run the CLI parser directly from the terminal to inspect metadata and normalized outputs of any resume file:
+### CLI Extraction Commands
+
+#### 1. Parse and Extract a Single Resume
+Extract structured fields and profile information of a single resume file:
 ```bash
 python run.py --resume data/resumes/candidate_01.pdf
 ```
 
 **Expected Output:**
 ```text
-Filename: candidate_01.pdf
-File type: pdf
-Characters: 174
-Words: 27
+Candidate Profile:
+  Candidate ID: candidate_01
+  Filename: candidate_01.pdf
+  Name: John Doe
+  Email: john.doe@example.com
+  Phone: +1-555-0101
+  Skills: Python, FastAPI, SQL, PostgreSQL, Docker, PyTorch, scikit-learn, Git
+  Education: B.Tech
+  Years of Experience: 3.0
+  Summary: Experienced Software Engineer specializing in AI pipelines and FastAPI backend services.
 
-Extracted text:
-John Doe
-Python Software Engineer
-Skills: Python, FastAPI, Docker, PostgreSQL
-Experience:
-- Backend Engineer at Tech Corp (2 years)
-- Junior Developer at StartUp Inc (1 year)
+Work Experience Section:
+Tech Corp - Software Engineer
+3 years of experience.
+- Designed and deployed FastAPI backend apps with SQL.
+- Used Docker for containerizing models.
+```
+
+#### 2. Summarize All Resumes in a Directory
+Run batch parsing and structured extraction across all files in a folder to print a summary table:
+```bash
+python run.py --all-resumes data/resumes/
+```
+
+**Expected Output:**
+```text
+====================================================================================================
+Parsed Candidates Summary
+====================================================================================================
+Filename             | Name            | Email                     | Exp   | Skills                        
+----------------------------------------------------------------------------------------------------
+candidate_01.pdf     | John Doe        | john.doe@example.com      | 3.0   | Python, FastAPI, SQL, PostgreSQL...
+candidate_02.docx    | Jane Smith      | jane.smith@example.com    | 4.0   | Python, SQL, Deep Learning, TensorFlow...
+candidate_03.txt     | Alex Jones      | alex.jones@example.com    | 2.0   | Python, Docker, Kubernetes, AWS...
+...
 ```
 
 ### Error Handling

@@ -1,0 +1,16 @@
+William Grey
+Astrophysics PhD Graduate
+Email: william.grey@example.com | Phone: 555-0109
+
+Summary:
+Astrophysicist with strong scientific computing background.
+
+Experience:
+Research Fellow at Observatory
+1 year experience.
+- Simulated physical models using Python and C++.
+
+Education:
+PhD in Astrophysics
+
+Skills: Python, C++, Git

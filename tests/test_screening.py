@@ -211,3 +211,73 @@ def test_job_description_extraction_end_to_end():
     assert len(jd.responsibilities) == 2
     assert "Design and train ML models." in jd.responsibilities
 
+def test_resume_name_extractor():
+    from app.extraction.resume_extractor import extract_name
+    
+    resume_text = "John Doe\nSoftware Engineer\njohn.doe@example.com\n"
+    assert extract_name(resume_text) == "John Doe"
+    
+    resume_text_with_header = "RESUME\n\nJane Smith\nData Scientist\n"
+    assert extract_name(resume_text_with_header) == "Jane Smith"
+
+def test_resume_contact_extractor():
+    from app.extraction.resume_extractor import extract_email, extract_phone
+    
+    text = "Contact: test.candidate_01@domain.co.uk or call +1 (555) 0199 for info."
+    assert extract_email(text) == "test.candidate_01@domain.co.uk"
+    assert extract_phone(text) == "+1 (555) 0199"
+
+def test_resume_sections_extractor():
+    from app.extraction.resume_extractor import extract_work_experience_section, extract_summary_section
+    
+    resume = """
+    Alice Johnson
+    
+    Summary
+    Dynamic developer with experience.
+    
+    Experience
+    Tech Corp - Software Developer
+    - Coded FastAPI backend pipelines.
+    
+    Education
+    B.Tech CS
+    """
+    
+    summary = extract_summary_section(resume)
+    assert summary == "Dynamic developer with experience."
+    
+    exp = extract_work_experience_section(resume)
+    assert exp == "Tech Corp - Software Developer\n- Coded FastAPI backend pipelines."
+
+def test_candidate_profile_extraction_end_to_end():
+    from app.extraction.resume_extractor import extract_candidate_profile
+    
+    resume = """
+    Bob Smith
+    Email: bob.smith@work.com | Phone: 555-123-4567
+    
+    Summary:
+    Expert data practitioner.
+    
+    Work Experience:
+    StartUp Inc - ML Architect
+    3+ years.
+    - Built TensorFlow neural networks.
+    
+    Education:
+    PhD in Math
+    """
+    
+    profile = extract_candidate_profile(resume, "bob.txt", "bob_id")
+    assert profile.candidate_id == "bob_id"
+    assert profile.filename == "bob.txt"
+    assert profile.name == "Bob Smith"
+    assert profile.email == "bob.smith@work.com"
+    assert profile.phone == "555-123-4567"
+    assert "TensorFlow" in profile.skills
+    assert "PhD" in profile.education
+    assert profile.years_of_experience == 3.0
+    assert "ML Architect" in profile.work_experience
+    assert "Expert data practitioner." in profile.summary
+

@@ -1,6 +1,17 @@
 Alex Jones
 DevOps Engineer
+Email: alex.jones@example.com | Phone: +1-555-0103
 
-Skills: Docker, Kubernetes, AWS, Bash
+Summary:
+Infrastructure Engineer focused on containerized workloads and CI/CD pipelines.
 
-Experience: DevOps Analyst at CloudCorp (3 years)
+Experience:
+CloudCorp - DevOps Analyst
+2 years experience.
+- Implemented Docker and Kubernetes platforms.
+- Automated cloud deployments on AWS.
+
+Education:
+Bachelor of Science in Information Technology
+
+Skills: Docker, Kubernetes, AWS, Git, Python, Bash

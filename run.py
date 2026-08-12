@@ -54,26 +54,81 @@ def verify_environment():
 def main():
     parser = argparse.ArgumentParser(description="Resume Screening AI Agent Tool")
     parser.add_argument("--resume", type=str, help="Path to a resume file to parse")
+    parser.add_argument("--all-resumes", type=str, help="Path to a directory containing resumes to summarize")
     parser.add_argument("--job-description", type=str, help="Path to a job description file to parse")
     args = parser.parse_args()
     
     if args.resume:
         try:
             from app.parsers import parse_document
+            from app.extraction import extract_candidate_profile
+            
             file_path = Path(args.resume)
             doc = parse_document(file_path)
+            profile = extract_candidate_profile(doc.normalized_text, file_path.name, file_path.stem)
             
-            print(f"Filename: {doc.filename}")
-            print(f"File type: {doc.file_type}")
-            print(f"Characters: {doc.character_count}")
-            print(f"Words: {doc.word_count}")
-            print("\nExtracted text:")
-            print(doc.normalized_text)
+            print(f"Candidate Profile:")
+            print(f"  Candidate ID: {profile.candidate_id}")
+            print(f"  Filename: {profile.filename}")
+            print(f"  Name: {profile.name or 'N/A'}")
+            print(f"  Email: {profile.email or 'N/A'}")
+            print(f"  Phone: {profile.phone or 'N/A'}")
+            print(f"  Skills: {', '.join(profile.skills) if profile.skills else 'None'}")
+            print(f"  Education: {', '.join(profile.education) if profile.education else 'None'}")
+            print(f"  Years of Experience: {profile.years_of_experience}")
+            print(f"  Summary: {profile.summary or 'N/A'}")
+            print(f"\nWork Experience Section:")
+            print(profile.work_experience or 'N/A')
             sys.exit(0)
         except FileNotFoundError as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
         except ValueError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"Unexpected Error: {e}", file=sys.stderr)
+            sys.exit(1)
+            
+    if args.all_resumes:
+        try:
+            from app.parsers import parse_document
+            from app.extraction import extract_candidate_profile
+            
+            resumes_dir = Path(args.all_resumes)
+            if not resumes_dir.is_dir():
+                raise FileNotFoundError(f"Directory not found: {args.all_resumes}")
+                
+            allowed_suffixes = {".pdf", ".docx", ".txt", ".md"}
+            files = sorted([p for p in resumes_dir.iterdir() if p.is_file() and p.suffix.lower() in allowed_suffixes])
+            
+            if not files:
+                print("No resumes found in the directory.")
+                sys.exit(0)
+                
+            print("=" * 100)
+            print("Parsed Candidates Summary")
+            print("=" * 100)
+            print(f"{'Filename':<20} | {'Name':<15} | {'Email':<25} | {'Exp':<5} | {'Skills':<30}")
+            print("-" * 100)
+            
+            for file in files:
+                try:
+                    parsed_doc = parse_document(file)
+                    profile = extract_candidate_profile(parsed_doc.normalized_text, file.name, file.stem)
+                    
+                    name_str = profile.name or "N/A"
+                    email_str = profile.email or "N/A"
+                    skills_str = ", ".join(profile.skills[:4])
+                    if len(profile.skills) > 4:
+                        skills_str += "..."
+                        
+                    print(f"{file.name:<20} | {name_str:<15} | {email_str:<25} | {profile.years_of_experience:<5} | {skills_str:<30}")
+                except Exception as e:
+                    print(f"{file.name:<20} | Error: {e}")
+            print("=" * 100)
+            sys.exit(0)
+        except FileNotFoundError as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
         except Exception as e:

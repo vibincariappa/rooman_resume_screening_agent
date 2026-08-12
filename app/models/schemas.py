@@ -2,11 +2,17 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
 class CandidateProfile(BaseModel):
-    name: str
+    candidate_id: str
+    filename: str
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
     skills: List[str] = Field(default_factory=list)
-    education: List[Dict[str, Any]] = Field(default_factory=list)
-    experience: List[Dict[str, Any]] = Field(default_factory=list)
-    raw_text: Optional[str] = None
+    education: List[str] = Field(default_factory=list)
+    years_of_experience: float = 0.0
+    work_experience: Optional[str] = None
+    summary: Optional[str] = None
+    raw_text: str
 
 class JobDescription(BaseModel):
     title: str
@@ -33,3 +39,8 @@ class ResumeDocument(BaseModel):
     normalized_text: str
     character_count: int
     word_count: int
+
+class SimilarityResult(BaseModel):
+    candidate_id: str
+    semantic_similarity: float
+    matched_text_context: Optional[str] = None
