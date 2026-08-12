@@ -1,0 +1,30 @@
+==============================================================
+EVALUATION REPORT FOR CANDIDATE: John Doe
+==============================================================
+File: candidate_01.pdf
+Match Decision: Good Match
+Final Score: 74.54 / 100.0
+  - Skills Score: 62.22 (45% weight)
+  - Semantic Similarity Score: 71.80 (30% weight)
+  - Experience Score: 100.00 (15% weight)
+  - Education Score: 100.00 (10% weight)
+
+Recruiter Reasoning Details:
+----------------------------
+Summary:
+John Doe is an experienced Software Engineer with 3 years of work experience, focusing on AI pipelines and FastAPI backend services.
+
+Key Strengths:
+  - Solid programming experience in Python and FastAPI.
+  - Good understanding of databases (SQL, PostgreSQL).
+  - Experience containerizing models with Docker.
+  - Meets minimum experience requirement (3.0 years vs 1.0 required).
+  - Meets education requirements (B.Tech).
+
+Key Gaps:
+  - Missing some preferred skills (LLM, NLP, RAG).
+  - Missing some required skills from JD (Deep Learning, PyTorch, scikit-learn).
+
+Suitability Explanation:
+Good Match. Candidate matches 8/9 required skills, exceeds the minimum experience requirement, and has high semantic similarity with the job description.
+==============================================================

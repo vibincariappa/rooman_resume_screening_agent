@@ -482,5 +482,114 @@ def test_candidate_scoring_no_requirements():
     assert breakdown.education_score == 100.0
     assert breakdown.final_score == 94.0
 
+def test_llm_reasoning_success():
+    from app.reasoning.explainer import query_llm_reasoning, LLMReasoningOutput
+    from app.models.schemas import CandidateProfile, JobDescription, ScoreBreakdown
+    from unittest.mock import MagicMock, patch
+    
+    jd = JobDescription(title="Python Developer", raw_text="...")
+    profile = CandidateProfile(candidate_id="c1", filename="c1.txt", skills=["Python"], raw_text="...")
+    breakdown = ScoreBreakdown(semantic_score=80.0, skills_score=80.0, experience_score=80.0, education_score=80.0, final_score=80.0)
+    
+    mock_parsed_output = LLMReasoningOutput(
+        summary="A highly qualified candidate with strong Python skills.",
+        strengths=["Expert in Python"],
+        gaps=["No cloud experience"],
+        suitability_explanation="Strong suitability due to coding experience.",
+        recommended_decision="Good Match"
+    )
+    
+    mock_choice = MagicMock()
+    mock_choice.message.parsed = mock_parsed_output
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+    
+    mock_client = MagicMock()
+    mock_client.beta.chat.completions.parse.return_value = mock_response
+    
+    with patch("app.reasoning.explainer.get_llm_client_and_model", return_value=(mock_client, "gpt-4o-mini")):
+        result = query_llm_reasoning(profile, jd, breakdown)
+        
+        assert result.recommended_decision == "Good Match"
+        assert result.summary == "A highly qualified candidate with strong Python skills."
+        assert "Expert in Python" in result.strengths
+        mock_client.beta.chat.completions.parse.assert_called_once()
 
+def test_llm_reasoning_fallback_on_error():
+    from app.reasoning.explainer import query_llm_reasoning
+    from app.models.schemas import CandidateProfile, JobDescription, ScoreBreakdown
+    from unittest.mock import MagicMock, patch
+    
+    jd = JobDescription(title="Python Developer", raw_text="...")
+    profile = CandidateProfile(candidate_id="c1", filename="c1.txt", name="Jane Doe", skills=["Python"], raw_text="...")
+    breakdown = ScoreBreakdown(semantic_score=80.0, skills_score=80.0, experience_score=80.0, education_score=80.0, final_score=80.0)
+    
+    mock_client = MagicMock()
+    mock_client.beta.chat.completions.parse.side_effect = Exception("API Error")
+    
+    with patch("app.reasoning.explainer.get_llm_client_and_model", return_value=(mock_client, "gpt-4o-mini")):
+        result = query_llm_reasoning(profile, jd, breakdown)
+        
+        assert result.recommended_decision == "Strong Match"
+        assert "Jane Doe" in result.summary or "Candidate" in result.summary
+
+def test_screen_candidates_service(tmp_path):
+    from app.services.screening_service import screen_candidates
+    import csv
+    
+    # Create temporary job description file
+    jd_file = tmp_path / "test_jd.txt"
+    jd_file.write_text("Job Title: Test Python Engineer\nRequired Skills: Python, FastAPI\nMinimum Experience: 2 years\nEducation: B.Tech")
+    
+    # Create temporary resumes directory
+    resumes_dir = tmp_path / "resumes"
+    resumes_dir.mkdir()
+    
+    # Candidate 1: perfect match
+    c1 = resumes_dir / "candidate_01.txt"
+    c1.write_text("John Doe\nSummary\nExpert engineer.\nExperience\n3 years as FastAPI coder.\nSkills: Python, FastAPI\nEducation: B.Tech")
+    
+    # Candidate 2: partial match
+    c2 = resumes_dir / "candidate_02.txt"
+    c2.write_text("Jane Smith\nSkills: Python\nEducation: B.Tech\nExperience: 1 year.")
+    
+    # Candidate 3: corrupted/empty PDF file (should fail parsing gracefully but continue)
+    c3 = resumes_dir / "corrupted_candidate.pdf"
+    c3.write_text("")  # Empty PDF
+    
+    # Output directory
+    output_dir = tmp_path / "output"
+    
+    result = screen_candidates(
+        job_description_path=str(jd_file),
+        resumes_directory=str(resumes_dir),
+        output_directory=str(output_dir)
+    )
+    
+    # Assertions on pipeline counts
+    assert result.total_candidates == 3
+    assert result.processed_candidates == 2
+    assert len(result.failed_candidates) == 1
+    assert result.failed_candidates[0]["filename"] == "corrupted_candidate.pdf"
+    
+    # Assertions on sorting
+    assert len(result.ranked_candidates) == 2
+    assert result.ranked_candidates[0]["final_score"] >= result.ranked_candidates[1]["final_score"]
+    
+    # Assertions on exported files
+    json_path = output_dir / "ranked_candidates.json"
+    csv_path = output_dir / "ranked_candidates.csv"
+    
+    assert json_path.exists()
+    assert csv_path.exists()
+    
+    # Verify CSV structure
+    with open(csv_path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        headers = next(reader)
+        assert "rank" in headers
+        assert "candidate_id" in headers
+        assert "final_score" in headers
+        assert "matched_skills" in headers
+        assert "recommendation" in headers
 

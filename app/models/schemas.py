@@ -54,3 +54,11 @@ class SimilarityResult(BaseModel):
     candidate_id: str
     semantic_similarity: float
     matched_text_context: Optional[str] = None
+
+class BatchScreeningResult(BaseModel):
+    job_title: str
+    total_candidates: int
+    processed_candidates: int
+    failed_candidates: List[Dict[str, str]] = Field(default_factory=list)
+    ranked_candidates: List[Dict[str, Any]] = Field(default_factory=list)
+    processing_time: float

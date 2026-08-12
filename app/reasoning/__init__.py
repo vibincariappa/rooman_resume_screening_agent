@@ -1,4 +1,4 @@
-# Reasoning package for explaining screening decisions
-from app.reasoning.explainer import explain_screening_decision
+# Reasoning package for LLM Recruiter explanations and suitability summaries
+from app.reasoning.explainer import query_llm_reasoning, LLMReasoningOutput
 
-__all__ = ["explain_screening_decision"]
+__all__ = ["query_llm_reasoning", "LLMReasoningOutput"]

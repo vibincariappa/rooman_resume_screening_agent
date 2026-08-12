@@ -6,9 +6,9 @@ This project is built using a deterministic, NLP-similarity-driven scoring frame
 
 ---
 
-## 📅 Project Phase: Deterministic Candidate Scoring Engine (Step 5 Completed)
+## 📅 Project Phase: Complete Batch Screening Pipeline (Step 7 Completed)
 
-We have completed **Step 5: Deterministic Candidate Scoring Engine**. Candidates can now be ranked and screened using a deterministic multi-criteria scoring algorithm based on Skills Match (45%), Semantic Similarity (30%), Experience Match (15%), and Education Match (10%).
+We have completed **Step 7: Complete Batch Screening**. The application orchestrates a full screening pipeline (Job Description parsing -> loading resumes -> document parsing -> profile extraction -> embedding similarity scoring -> deterministic candidate scoring -> LLM recrystallization -> output sorting -> JSON/CSV exports) with full resilience to corrupted documents.
 
 
 
@@ -180,21 +180,89 @@ candidate_03.txt     | Alex Jones      | alex.jones@example.com    | 2.0   | Pyt
 ...
 ```
 
-#### 3. Screen and Rank Candidates
-Compare candidates against a job description using the deterministic scoring engine and print a ranked evaluation table:
+#### 3. Screen, Rank, and Export Candidates
+Compare all candidates in a directory against a job description, print execution logs, and serialize evaluation outputs to JSON and CSV formats under an output folder:
 ```bash
-python run.py --screen --job-description data/job_descriptions/sample_jd.txt --resumes data/resumes/
+python run.py --screen \
+  --job-description data/job_descriptions/sample_jd.txt \
+  --resumes data/resumes/ \
+  --output data/output/
 ```
 
 **Expected Output:**
 ```text
+[*] Loading and parsing Job Description from: sample_jd.txt
+[*] Generating semantic embeddings for Job Description...
+[*] Found 10 candidate resume(s) to process.
+[1/10] Processing resume: candidate_01.pdf... SUCCESS
+[2/10] Processing resume: candidate_02.docx... SUCCESS
+...
+[*] Saving JSON results to: data\output\ranked_candidates.json
+[*] Saving CSV results to: data\output\ranked_candidates.csv
+
+=================================================================
+Screening Summary for: Junior AI/ML Engineer
+=================================================================
+Total Candidates: 10
+Processed Successfully: 10
+Failed Candidates: 0
+Processing Time: 6.99 seconds
+
 Rank  Candidate      Score   Skills   Semantic   Experience
 -------------------------------------------------------------
 1     Candidate 01   74.54   62.22    71.80      100.00    
 2     Candidate 02   70.72   53.33    72.40      100.00    
-3     Candidate 04   64.95   44.44    66.50      100.00    
 ...
 ```
+
+#### 4. Detailed Single Candidate Evaluation Report
+Evaluate a single candidate against a job description to print the score breakdown and structured LLM Recruiter Reasoning (or rule-based fallback):
+```bash
+python run.py --resume data/resumes/candidate_01.pdf --job-description data/job_descriptions/sample_jd.txt
+```
+
+**Expected Output:**
+```text
+==============================================================
+EVALUATION REPORT FOR CANDIDATE: John Doe
+==============================================================
+File: candidate_01.pdf
+Match Decision: Good Match
+Final Score: 74.54 / 100.0
+  - Skills Score: 62.22 (45% weight)
+  - Semantic Similarity Score: 71.80 (30% weight)
+  - Experience Score: 100.00 (15% weight)
+  - Education Score: 100.00 (10% weight)
+
+Recruiter Reasoning Details:
+----------------------------
+Summary:
+John Doe is an experienced Software Engineer with 3 years of work experience, focusing on AI pipelines and FastAPI backend services.
+...
+```
+
+---
+
+## ⚙️ LLM Reasoning Configuration
+
+To enable the LLM reasoning layer, configure the following environment variables in `.env` in the root directory:
+
+```env
+# Supported: gemini (default), openai, ollama, or leave blank to fallback
+LLM_PROVIDER=gemini
+
+# Primary API Key (Gemini)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Fallback API Key (OpenAI)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Models (optional)
+OPENAI_MODEL=gemini-1.5-flash
+OLLAMA_MODEL=llama3
+```
+
+- **Robust Fallback**: If no API credentials or local providers are configured, the system automatically falls back to deterministic, rules-based structured recruiter evaluations, ensuring 100% execution uptime.
 
 ### Error Handling
 The parser detects and handles exceptions gracefully, outputting a clear diagnostic error and exiting with code `1`:
