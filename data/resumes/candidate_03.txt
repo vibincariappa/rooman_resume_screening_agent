@@ -1,0 +1,6 @@
+Alex Jones
+DevOps Engineer
+
+Skills: Docker, Kubernetes, AWS, Bash
+
+Experience: DevOps Analyst at CloudCorp (3 years)

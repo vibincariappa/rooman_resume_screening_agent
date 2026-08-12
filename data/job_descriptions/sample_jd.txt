@@ -1,0 +1,24 @@
+Junior AI/ML Engineer
+
+About the Role:
+We are looking for a passionate Junior AI/ML Engineer to join our growing research and development team. You will work on designing, training, and deploying machine learning models and building pipelines.
+
+Responsibilities:
+- Collaborate with software engineers to integrate ML models into production services.
+- Clean, preprocess, and analyze raw datasets for model training.
+- Assist in designing and evaluating Deep Learning algorithms for natural language processing.
+- Maintain and monitor models in production using Docker containers.
+
+Requirements:
+- Bachelor or B.Tech degree in Computer Science, engineering, or related field.
+- Minimum 1 year of professional experience in software development or data science.
+- Strong proficiency in Python programming.
+- Hands-on experience with Machine Learning libraries including PyTorch and scikit-learn.
+- Familiarity with SQL and relational databases like PostgreSQL.
+- Git for version control and collaborative development.
+
+Preferred Qualifications:
+- M.Tech or PhD in AI/ML is a plus.
+- Familiarity with NLP, LLM, and RAG architectures.
+- Experience deploying containers in Kubernetes.
+- Knowledge of cloud services like AWS or GCP.

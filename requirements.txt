@@ -1,0 +1,11 @@
+fastapi>=0.110.0
+uvicorn>=0.28.0
+pymupdf>=1.23.26
+python-docx>=1.1.0
+sentence-transformers>=2.5.1
+scikit-learn>=1.4.1.post1
+pydantic>=2.6.4
+pandas>=2.2.1
+pytest>=8.1.1
+python-dotenv>=1.0.1
+openai>=1.14.1
