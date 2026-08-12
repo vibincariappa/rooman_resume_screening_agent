@@ -281,3 +281,206 @@ def test_candidate_profile_extraction_end_to_end():
     assert "ML Architect" in profile.work_experience
     assert "Expert data practitioner." in profile.summary
 
+def test_similarity_range_and_identical():
+    from app.matching.embeddings import generate_embedding
+    from app.matching.similarity import calculate_similarity
+    
+    text = "We are seeking a senior python engineer with experience in cloud environments."
+    emb_a = generate_embedding(text)
+    emb_b = generate_embedding(text)
+    
+    sim = calculate_similarity(emb_a, emb_b)
+    # Identical text must yield 100.0
+    assert sim == 100.0
+    
+    # Test ranges
+    text_diff = "A completely different sentence discussing football and cooking recipes."
+    emb_diff = generate_embedding(text_diff)
+    sim_diff = calculate_similarity(emb_a, emb_diff)
+    assert 0.0 <= sim_diff <= 100.0
+    # Unrelated texts should be significantly less than 100.0
+    assert sim_diff < 50.0
+
+def test_model_loading_caching():
+    from app.matching.embeddings import get_embedding_model
+    
+    model_1 = get_embedding_model("all-MiniLM-L6-v2")
+    model_2 = get_embedding_model("all-MiniLM-L6-v2")
+    
+    # The references must be identical (same object)
+    assert model_1 is model_2
+
+def test_multiple_candidates_similarity():
+    from app.matching.embeddings import generate_embedding
+    from app.matching.similarity import calculate_similarity
+    
+    jd = "Seeking a machine learning expert in PyTorch and TensorFlow."
+    c1 = "Deep learning engineer with PyTorch and TensorFlow expertise."
+    c2 = "Front-end developer experienced in React and Javascript."
+    
+    emb_jd = generate_embedding(jd)
+    emb_c1 = generate_embedding(c1)
+    emb_c2 = generate_embedding(c2)
+    
+    sim_1 = calculate_similarity(emb_jd, emb_c1)
+    sim_2 = calculate_similarity(emb_jd, emb_c2)
+    
+    # Candidate 1 must be more similar to the JD than candidate 2
+    assert sim_1 > sim_2
+
+def test_candidate_scoring_perfect():
+    from app.models.schemas import CandidateProfile, JobDescription
+    from app.matching.scoring import calculate_candidate_score
+    
+    jd = JobDescription(
+        title="Python Engineer",
+        required_skills=["Python", "FastAPI"],
+        preferred_skills=["Docker"],
+        minimum_experience_years=3.0,
+        education_requirements=["B.Tech"],
+        responsibilities=["Write backend APIs"],
+        raw_text="Job Description text"
+    )
+    
+    profile = CandidateProfile(
+        candidate_id="perfect",
+        filename="perfect.txt",
+        name="Perfect Candidate",
+        skills=["Python", "FastAPI", "Docker"],
+        education=["B.Tech in Computer Science"],
+        years_of_experience=4.0,
+        raw_text="Resume text"
+    )
+    
+    breakdown = calculate_candidate_score(profile, jd, semantic_score=100.0)
+    
+    assert breakdown.skills_score == 100.0
+    assert breakdown.experience_score == 100.0
+    assert breakdown.education_score == 100.0
+    assert breakdown.semantic_score == 100.0
+    assert breakdown.final_score == 100.0
+
+def test_candidate_scoring_missing_skills():
+    from app.models.schemas import CandidateProfile, JobDescription
+    from app.matching.scoring import calculate_candidate_score
+    
+    jd = JobDescription(
+        title="Python Engineer",
+        required_skills=["Python", "FastAPI"],
+        preferred_skills=[],
+        minimum_experience_years=0.0,
+        education_requirements=[],
+        responsibilities=[],
+        raw_text="Job Description text"
+    )
+    
+    profile = CandidateProfile(
+        candidate_id="missing_skills",
+        filename="c1.txt",
+        name="Candidate A",
+        skills=["Python"],
+        education=[],
+        years_of_experience=0.0,
+        raw_text="Resume text"
+    )
+    
+    breakdown = calculate_candidate_score(profile, jd, semantic_score=80.0)
+    assert breakdown.skills_score == 60.0
+
+def test_candidate_scoring_insufficient_exp():
+    from app.models.schemas import CandidateProfile, JobDescription
+    from app.matching.scoring import calculate_candidate_score
+    
+    jd = JobDescription(
+        title="Python Engineer",
+        required_skills=[],
+        preferred_skills=[],
+        minimum_experience_years=4.0,
+        education_requirements=[],
+        responsibilities=[],
+        raw_text="Job Description text"
+    )
+    
+    profile = CandidateProfile(
+        candidate_id="low_exp",
+        filename="c2.txt",
+        name="Candidate B",
+        skills=[],
+        education=[],
+        years_of_experience=2.0,
+        raw_text="Resume text"
+    )
+    
+    breakdown = calculate_candidate_score(profile, jd, semantic_score=80.0)
+    assert breakdown.experience_score == 50.0
+
+def test_candidate_scoring_missing_education():
+    from app.models.schemas import CandidateProfile, JobDescription
+    from app.matching.scoring import calculate_candidate_score
+    
+    jd = JobDescription(
+        title="Python Engineer",
+        required_skills=[],
+        preferred_skills=[],
+        minimum_experience_years=0.0,
+        education_requirements=["PhD"],
+        responsibilities=[],
+        raw_text="Job Description text"
+    )
+    
+    profile_other = CandidateProfile(
+        candidate_id="btech",
+        filename="c3.txt",
+        skills=[],
+        education=["B.Tech"],
+        years_of_experience=0.0,
+        raw_text="Resume text"
+    )
+    
+    profile_none = CandidateProfile(
+        candidate_id="none",
+        filename="c4.txt",
+        skills=[],
+        education=[],
+        years_of_experience=0.0,
+        raw_text="Resume text"
+    )
+    
+    br_other = calculate_candidate_score(profile_other, jd, semantic_score=80.0)
+    br_none = calculate_candidate_score(profile_none, jd, semantic_score=80.0)
+    
+    assert br_other.education_score == 50.0
+    assert br_none.education_score == 0.0
+
+def test_candidate_scoring_no_requirements():
+    from app.models.schemas import CandidateProfile, JobDescription
+    from app.matching.scoring import calculate_candidate_score
+    
+    jd = JobDescription(
+        title="Generic Role",
+        required_skills=[],
+        preferred_skills=[],
+        minimum_experience_years=0.0,
+        education_requirements=[],
+        responsibilities=[],
+        raw_text="JD text"
+    )
+    
+    profile = CandidateProfile(
+        candidate_id="candidate",
+        filename="c.txt",
+        skills=[],
+        education=[],
+        years_of_experience=0.0,
+        raw_text="Resume text"
+    )
+    
+    breakdown = calculate_candidate_score(profile, jd, semantic_score=80.0)
+    
+    assert breakdown.skills_score == 100.0
+    assert breakdown.experience_score == 100.0
+    assert breakdown.education_score == 100.0
+    assert breakdown.final_score == 94.0
+
+
+

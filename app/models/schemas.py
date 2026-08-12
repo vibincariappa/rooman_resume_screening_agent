@@ -23,6 +23,15 @@ class JobDescription(BaseModel):
     responsibilities: List[str] = Field(default_factory=list)
     raw_text: str
 
+class ScoreBreakdown(BaseModel):
+    semantic_score: float
+    skills_score: float
+    experience_score: float
+    education_score: float
+    final_score: float
+    matched_skills: List[str] = Field(default_factory=list)
+    missing_required_skills: List[str] = Field(default_factory=list)
+
 class ScreeningResult(BaseModel):
     candidate_name: str
     relevance_score: float
@@ -30,6 +39,7 @@ class ScreeningResult(BaseModel):
     experience_match_score: float
     semantic_similarity_score: float
     reasoning: str
+    breakdown: ScoreBreakdown
     details: Dict[str, Any] = Field(default_factory=dict)
 
 class ResumeDocument(BaseModel):

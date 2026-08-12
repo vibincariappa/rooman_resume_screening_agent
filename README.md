@@ -6,9 +6,9 @@ This project is built using a deterministic, NLP-similarity-driven scoring frame
 
 ---
 
-## 📅 Project Phase: Structured Resume Extraction (Step 3 Completed)
+## 📅 Project Phase: Deterministic Candidate Scoring Engine (Step 5 Completed)
 
-We have completed **Step 3: Structured Resume Extraction**. The application can extract structured candidate profile schemas (name, contact info, skills, education, experience, summary, experience text blocks) deterministically from PDF, DOCX, and TXT files, and compile a parsed candidate summary catalog.
+We have completed **Step 5: Deterministic Candidate Scoring Engine**. Candidates can now be ranked and screened using a deterministic multi-criteria scoring algorithm based on Skills Match (45%), Semantic Similarity (30%), Experience Match (15%), and Education Match (10%).
 
 
 
@@ -177,6 +177,22 @@ Filename             | Name            | Email                     | Exp   | Ski
 candidate_01.pdf     | John Doe        | john.doe@example.com      | 3.0   | Python, FastAPI, SQL, PostgreSQL...
 candidate_02.docx    | Jane Smith      | jane.smith@example.com    | 4.0   | Python, SQL, Deep Learning, TensorFlow...
 candidate_03.txt     | Alex Jones      | alex.jones@example.com    | 2.0   | Python, Docker, Kubernetes, AWS...
+...
+```
+
+#### 3. Screen and Rank Candidates
+Compare candidates against a job description using the deterministic scoring engine and print a ranked evaluation table:
+```bash
+python run.py --screen --job-description data/job_descriptions/sample_jd.txt --resumes data/resumes/
+```
+
+**Expected Output:**
+```text
+Rank  Candidate      Score   Skills   Semantic   Experience
+-------------------------------------------------------------
+1     Candidate 01   74.54   62.22    71.80      100.00    
+2     Candidate 02   70.72   53.33    72.40      100.00    
+3     Candidate 04   64.95   44.44    66.50      100.00    
 ...
 ```
 
